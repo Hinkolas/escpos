@@ -76,6 +76,10 @@ func (p *Printer) Bold(mode byte) (int, error) {
 	return p.w.Write([]byte{ESC, 'E', byte(mode)})
 }
 
+func (p *Printer) Justify(mode byte) (int, error) {
+	return p.w.Write([]byte{ESC, 'a', byte(mode)})
+}
+
 func (p *Printer) Size(witdh, height byte) (int, error) {
 	mode := ((witdh & 0x0F) << 4) | (height & 0x0F)
 	return p.w.Write([]byte{GS, '!', byte(mode)})
