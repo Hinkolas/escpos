@@ -86,8 +86,47 @@ func (p *Printer) Size(witdh, height byte) (int, error) {
 }
 
 func (p *Printer) WriteImage(img image.Image) (int, error) {
-	// TODO: Implement method for writing images to the printer buffer
-	return 0, nil
+
+	bounds := img.Bounds()
+	grayImg := image.NewGray(bounds)
+	draw.Draw(grayImg, bounds, img, bounds.Min, draw.Src)
+	width, height := bounds.Dx(), bounds.Dy()
+
+	if width > p.Config.LineWidth {
+		return 0, fmt.Errorf("image width exceeds maximum dots/line")
+	}
+
+	// 2. Convert the image to raster data
+	// Each byte in raster data represents 8 horizontal pixels.
+	bWidth := (width + 7) / 8
+	rData := make([]byte, bWidth*height)
+
+	for y := range height {
+		for x := range width {
+			// If the pixel is darker than the threshold, set the corresponding bit
+			if grayImg.GrayAt(x+bounds.Min.X, y+bounds.Min.Y).Y < 128 {
+				byteIndex := (y * bWidth) + (x / 8)
+				bitIndex := 7 - uint(x%8)
+				rData[byteIndex] |= 1 << bitIndex
+			}
+		}
+	}
+
+	// 3. Construct and send the command
+	// GS v 0 m xL xH yL yH d1...dk
+	// m = 0 (normal mode)
+	// xL, xH = width in bytes
+	// yL, yH = height in pixels
+	xL := byte(bWidth % 256)
+	xH := byte(bWidth / 256)
+	yL := byte(height % 256)
+	yH := byte(height / 256)
+
+	header := []byte{GS, 'v', '0', 0, xL, xH, yL, yH}
+	command := append(header, rData...)
+
+	return p.Write(command)
+
 }
 
 func (p *Printer) WriteQRCode(data []byte) (int, error) {
