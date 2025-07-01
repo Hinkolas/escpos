@@ -15,6 +15,7 @@ type Printer struct {
 
 type Config struct {
 	CutOffset int
+	LineWidth int
 }
 
 // NewPrinter creates a new printer with the given writer and config
