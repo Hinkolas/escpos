@@ -89,3 +89,18 @@ func (p *Printer) WriteImage(img image.Image) (int, error) {
 	// TODO: Implement method for writing images to the printer buffer
 	return 0, nil
 }
+
+func (p *Printer) WriteQRCode(data []byte) (int, error) {
+	// TODO: Implement method for writing qr-codes to the printer buffer
+	return 0, nil
+}
+
+func (p *Printer) WriteBarcode(data []byte) (int, error) {
+	// TODO: Implement method for writing barcodes to the printer buffer
+	return 0, nil
+}
+
+func (p *Printer) WriteMarkdown(data []byte) (int, error) {
+	// TODO: Implement method for writing markdown to the printer buffer
+	return 0, nil
+}
