@@ -3,7 +3,9 @@ package escpos
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"image"
+	"image/draw"
 	"io"
 )
 
