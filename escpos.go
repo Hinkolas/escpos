@@ -20,6 +20,10 @@ type Config struct {
 	LineWidth int
 }
 
+type ImageConfig struct {
+	Threshold uint8
+}
+
 // NewPrinter creates a new printer with the given writer and config
 func NewPrinter(w io.Writer, config *Config) *Printer {
 	if config == nil {
@@ -88,7 +92,7 @@ func (p *Printer) Size(witdh, height byte) (int, error) {
 	return p.w.Write([]byte{GS, '!', byte(mode)})
 }
 
-func (p *Printer) WriteImage(img image.Image) (int, error) {
+func (p *Printer) WriteImage(img image.Image, cfg ImageConfig) (int, error) {
 
 	bounds := img.Bounds()
 	grayImg := image.NewGray(bounds)
@@ -107,7 +111,7 @@ func (p *Printer) WriteImage(img image.Image) (int, error) {
 	for y := range height {
 		for x := range width {
 			// If the pixel is darker than the threshold, set the corresponding bit
-			if grayImg.GrayAt(x+bounds.Min.X, y+bounds.Min.Y).Y < 128 {
+			if grayImg.GrayAt(x+bounds.Min.X, y+bounds.Min.Y).Y < cfg.Threshold {
 				byteIndex := (y * bWidth) + (x / 8)
 				bitIndex := 7 - uint(x%8)
 				rData[byteIndex] |= 1 << bitIndex
