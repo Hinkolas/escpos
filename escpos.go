@@ -7,9 +7,6 @@ import (
 	"image"
 	"image/draw"
 	"io"
-	"os"
-
-	"github.com/goforj/godump"
 )
 
 type Printer struct {
@@ -141,11 +138,6 @@ func (p *Printer) WriteImage(img image.Image, cfg *ImageConfig) (int, error) {
 
 	header := []byte{GS, 'v', '0', 0, xL, xH, yL, yH}
 	command := append(header, rData...)
-
-	dumpOutput := godump.DumpHTML(command)
-	if err := os.WriteFile("dump_output.html", []byte(dumpOutput), 0644); err != nil {
-		return 0, fmt.Errorf("failed to write dump output to file: %w", err)
-	}
 
 	return p.Write(command)
 
