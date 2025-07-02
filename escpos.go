@@ -7,17 +7,21 @@ import (
 	"image"
 	"image/draw"
 	"io"
+	"os"
+
+	"github.com/goforj/godump"
 )
 
 type Printer struct {
-	Config *Config
+	Config *PrinterConfig
 
 	w *bufio.Writer
 }
 
-type Config struct {
+type PrinterConfig struct {
 	CutOffset int
 	LineWidth int
+	FontWidth int
 }
 
 type ImageConfig struct {
@@ -25,13 +29,13 @@ type ImageConfig struct {
 }
 
 // NewPrinter creates a new printer with the given writer and config
-func NewPrinter(w io.Writer, config *Config) *Printer {
-	if config == nil {
-		config = &Config{}
+func NewPrinter(w io.Writer, cfg *PrinterConfig) *Printer {
+	if cfg == nil {
+		cfg = &PrinterConfig{}
 	}
 	return &Printer{
 		w:      bufio.NewWriter(w),
-		Config: config,
+		Config: cfg,
 	}
 }
 
@@ -92,7 +96,13 @@ func (p *Printer) Size(witdh, height byte) (int, error) {
 	return p.w.Write([]byte{GS, '!', byte(mode)})
 }
 
-func (p *Printer) WriteImage(img image.Image, cfg ImageConfig) (int, error) {
+func (p *Printer) WriteImage(img image.Image, cfg *ImageConfig) (int, error) {
+
+	if cfg == nil {
+		cfg = &ImageConfig{
+			Threshold: 128,
+		}
+	}
 
 	bounds := img.Bounds()
 	grayImg := image.NewGray(bounds)
@@ -131,6 +141,11 @@ func (p *Printer) WriteImage(img image.Image, cfg ImageConfig) (int, error) {
 
 	header := []byte{GS, 'v', '0', 0, xL, xH, yL, yH}
 	command := append(header, rData...)
+
+	dumpOutput := godump.DumpHTML(command)
+	if err := os.WriteFile("dump_output.html", []byte(dumpOutput), 0644); err != nil {
+		return 0, fmt.Errorf("failed to write dump output to file: %w", err)
+	}
 
 	return p.Write(command)
 
